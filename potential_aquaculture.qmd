@@ -14,17 +14,23 @@ execute:
   results: hide
 ---
 
+```{r}
+# Include pathway from function
+source("R/suitable_zones.R")
+```
+
 ### Load in Packages and Data 
 ```{r}
 #| message: false
 #| warning: false
 #| results: hide
+
 # Set up
 
 # Load in libraries
 library(tidyverse)
-library(terra)       # raster handling
-library(sf)          # vector handling
+library(terra) # raster handling
+library(sf) # vector handling
 library(tmap)
 
 
@@ -49,169 +55,16 @@ EEZ <- st_read("data/wc_regions_clean.shp")
 ```{r}
 # Combine yearly raster layers into one raster
 sst_stack <- c(sst_2008, sst_2009, sst_2010, sst_2011, sst_2012)
+```
 
-# Assign full EPSG code to SST (same system as depth, missing label)
-crs(sst_stack) <- "EPSG:4326"
+### Maps
 
-# Transform EEZ to match SST if CRSs differ
-if (!same.crs(sst_stack, EEZ)) {
-  warning("Transforming EEZ to match SST CRS")
-  EEZ <- st_transform(EEZ, crs(sst_stack))
-}
-
+```{r}
+# Suitable zone map for oysters
+suitable_zones(11, 30, 0, -70, 'Oysters')
 ```
 
 ```{r}
-# Process data so layers can be combined 
-
-# find mean SST from 2008-2012
-sst_avg <- mean(sst_stack)
-
-# Convert average SST from kelvin to celsius
-avg_sst_C <- sst_avg - 273.15
-
-# Crop depth raster to match the extent of the SST raster
-depth_crop <- crop(depth, avg_sst_C)
-
-# Resample the depth data to match resolution of SST
-depth_resample <- resample(depth_crop, avg_sst_C, method = "bilinear")
-```
-
-```{r}
-# Verify depth and SST match in CRS, extent, and resolution
-if (compareGeom(avg_sst_C, depth_resample, crs = TRUE, ext = TRUE,
-                rowcol = TRUE, res = TRUE)) {
-  print("Depth and SST match in CRS, extent, and resolution")
-}
-```
-
-
-### Find Suitable Locations for Oysters
-
-```{r}
-# Reclassifying SST and depth into suitable locations for oysters
-
-# Reclassify SST by making matrix
-rcl_sst_oyster <- matrix(c(
-    -Inf, 11, 0,
-    11, 30, 1, 
-    30, Inf, 0
-), ncol = 3, byrow = TRUE)
-
-# Apply it to raster layer
-sst_zones_oyster <- classify(avg_sst_C, rcl = rcl_sst_oyster)
-
-
-# Reclassify depth by making matrix
-rcl_depth_oyster <- matrix(c(
-    -Inf, -70, 0,
-    -70, 0, 1,
-    0, Inf, 0
-), ncol = 3, byrow = TRUE)
-
-# Apply it to raster layer
-depth_zones_oyster <- classify(depth_resample, rcl = rcl_depth_oyster)
-```
-
-
-### Find Suitable Locations for Red Abalone
-
-```{r}
-# Reclassifying SST and depth into suitable locations for red abalone
-
-# Reclassify SST by making matrix
-rcl_sst_abalone <- matrix(c(
-    -Inf, 8, 0,
-    8, 18, 1, 
-    18, Inf, 0
-), ncol = 3, byrow = TRUE)
-
-# Apply it to raster layer
-sst_zones_abalone <- classify(avg_sst_C, rcl = rcl_sst_abalone)
-
-
-# Reclassify depth by making matrix
-rcl_depth_abalone <- matrix(c(
-    -Inf, -24, 0,
-    -24, 0, 1,
-    0, Inf, 0
-), ncol = 3, byrow = TRUE)
-
-# Apply it to raster layer
-depth_zones_abalone <- classify(depth_resample, rcl = rcl_depth_abalone)
-```
-
-
-### Map Suitable Areas
-
-```{r}
-
-# Find areas that satisfy both SST and depth
-oyster_zone <- c(depth_zones_oyster, sst_zones_oyster)
-oyster_suitable_zones <- lapp(oyster_zone, fun = function(sst, depth) {
-    sst*depth})
-```
-
-
-### Determine suitable EEZ
-
-```{r}
-
-# Convert sf object to terra vector for rasterizing
-EEZ_vector <- vect(EEZ)
-
-# Rastertize EEZ
-EEZ_raster <- rasterize(EEZ_vector, oyster_suitable_zones, field = 'rgn_id')
-
-# Calculating area of each cell
-cell_area <- cellSize(oyster_suitable_zones, unit = "km", mask = TRUE)
-
-# Only the cells assigned to 1 
-suitable_area <- mask(cell_area, oyster_suitable_zones, maskvalues = 0)
-
-# Select raster cells that fall in EEZ regions
-suitable_area_eez <- zonal(
-    suitable_area,
-    EEZ_raster, 
-    fun = "sum",
-    na.rm = TRUE
-)
-```
-
-```{r}
-
-# Convert into DataFrame
-suitability_df <- as_tibble(suitable_area_eez) |> 
-    rename(suitable_area_km2 = area) # rename column name
-
-# Join suitable areas to EEZ polygons
-EEZ_map <- left_join(EEZ, suitability_df)
-```
-
-### Create map of suitable EEZ regions
-
-```{r}
-#| warning: false
-
-# Make a map of West Coast EEZ's 
-tm_shape(EEZ_map) +
-
-# Customize legend
-  tm_fill(
-    fill = "suitable_area_km2",
-    fill.legend = tm_legend("Suitable Area (km²)"),
-    fill.scale = tm_scale_continuous()) +
-
-# Customize border of polygons
-  tm_borders(lwd = 0.5) +
-
-# Add a scalebar
-  tm_scalebar(size = 0.3, 
-  position = c("left", "bottom")) +
-
-# Add a compass
-  tm_compass(position = c("right", "top")) +
-
-# Add a title
-  tm_title("Suitable Oyster Habitat by EEZ", fontface = "bold")
+# Suitable zone map for red abalone
+suitable_zones(8, 18, 0, -24, 'Red Abalone')
 ```

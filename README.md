@@ -21,8 +21,6 @@ Marine aquaculture could be a more sustainable protein source than land-based me
 
 * `fs`
 
-* `here`
-
 * `tmap`
 
 * `terra`
@@ -56,6 +54,8 @@ EDS223-HWK3
 The `data` folder contains the data used for this analysis.
 
 The `images` folder contains images that were used for the README an results sections.
+
+The `R` folder contains the suitable zones function that is used to produce the maps of a specified species.
 
 
 
