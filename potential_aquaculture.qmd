@@ -1,6 +1,8 @@
 ---
-title: "Prioritizing Potential Aquaculture Along the West Coast"
+title: "EDS 223: Homework Assignment 3"
+subtitle: "Prioritizing Potential Aquaculture Along the West Coast"
 date: 11-10-2026
+author: "Ethan Mathews"
 format: 
   pdf:
     toc: false
@@ -12,8 +14,11 @@ execute:
   results: hide
 ---
 
-
+### Load in Packages and Data 
 ```{r}
+#| message: false
+#| warning: false
+#| results: hide
 # Set up
 
 # Load in libraries
@@ -36,7 +41,7 @@ depth <- rast("data/depth.tif")
 
 
 # Load in EEZ data
-eez <- st_read("data/wc_regions_clean.shp")
+EEZ <- st_read("data/wc_regions_clean.shp")
 ```
 
 ### Process Data
@@ -55,45 +60,40 @@ sst_avg <- mean(sst_stack)
 # Convert average SST from kelvin to celsius
 avg_sst_C <- sst_avg - 273.15
 
-# Crop depth raster to match the extent of the SST raster 
-depth_crop <- crop(depth, avg_sst_C)
-
 # Resample the depth data to match resolution of SST
-depth_resample <- resample(depth_crop, avg_sst_C, method = "bilinear")
+depth_resample <- resample(depth, avg_sst_C, method = "bilinear")
 
 ```
 
 ```{r}
-# Test to see if CRSs' match among datasets
+# Checking and converting depth to match SST resolution, extent, and CRS
+if (all(res(avg_sst_C) == res(depth_resample))){
+    print("The resolutions match!")
+    } else {
+        warning("Update resolutions to match")
+        res(depth_resample) <- res(avg_sst_C)
+        }
+        
+# Checking and converting depth to match SST extent
+if (ext(avg_sst_C) == ext(depth_resample)){
+    print("The extents match!")
+    } else {
+        warning("Update extents to match")
+        ext(depth_resample) <- ext(avg_sst_C)
+        }
 
-# Check if sst_stack and depth have the same CRS
-if (crs(avg_sst_C) == crs(depth_resample)){
+# Checking and converting depth to match SST CRS
+if (same.crs(depth_resample, avg_sst_C)){
     print("The coordinate reference systems match!")
-} else {
-    warning("Update coordinate reference systems to match!")
-}
-
-# convert the depth_resample crs to be the crs of avg_sst_C
-crs(depth_resample) <- crs(avg_sst_C)
-
-# Quick check to verify it worked
-crs(depth_resample) == crs(avg_sst_C)
-
-```
-
-```{r}
-# Check if resolution, CRS, and extent match
-
-if (compareGeom(avg_sst_C, depth_resample, crs = TRUE, ext = TRUE,
-                rowcol = TRUE, res = TRUE)) {
-  print("Depth and SST match in CRS, extent, and resolution")
-}
+    } else {
+        warning("Update coordinate reference systems to match")
+        crs(depth_resample) <- crs(avg_sst_C)
+        }
 
 ```
 
 
-### Find Suitable Locations
-
+### Find Suitable Locations for Oysters
 
 ```{r}
 # Reclassifying SST and depth into suitable locations for oysters
@@ -106,7 +106,7 @@ rcl_sst_oyster <- matrix(c(
 ), ncol = 3, byrow = TRUE)
 
 # Apply it to raster layer
-sst_zones <- as.factor(classify(avg_sst_C, rcl = rcl_sst_oyster))
+sst_zones_oyster <- as.factor(classify(avg_sst_C, rcl = rcl_sst_oyster))
 
 
 # Reclassify depth by making matrix
@@ -117,9 +117,11 @@ rcl_depth_oyster <- matrix(c(
 ), ncol = 3, byrow = TRUE)
 
 # Apply it to raster layer
-depth_zones <- as.factor(classify(depth_resample, rcl = rcl_depth_oyster))
+depth_zones_oyster <- as.factor(classify(depth_resample, rcl = rcl_depth_oyster))
 ```
 
+
+### Find Suitable Locations for Red Abalone
 
 ```{r}
 # Reclassifying SST and depth into suitable locations for red abalone
@@ -132,16 +134,28 @@ rcl_sst_abalone <- matrix(c(
 ), ncol = 3, byrow = TRUE)
 
 # Apply it to raster layer
-sst_zones <- as.factor(classify(avg_sst_C, rcl = rcl_sst_abalone))
+sst_zones_abalone <- as.factor(classify(avg_sst_C, rcl = rcl_sst_abalone))
 
 
 # Reclassify depth by making matrix
 rcl_depth_abalone <- matrix(c(
-    -Inf, 0, 0,
-    0, 24, 1,
+    -Inf, -24, 0,
+    -24, 0, 1,
     0, Inf, 0
 ), ncol = 3, byrow = TRUE)
 
 # Apply it to raster layer
-depth_zones <- as.factor(classify(depth_resample, rcl = rcl_depth_abalone))
+depth_zones_abalone <- as.factor(classify(depth_resample, rcl = rcl_depth_abalone))
+```
+
+
+### Map Suitable Areas
+
+```{r}
+
+# Find areas that satisfy both SST and depth
+
+oyster_zone <- c(depth_zones_oyster, sst_zones_oyster)
+oyster_suitable_zones <- lapp(oyster_zone, function(sst, depth) sst* depth)
+
 ```
