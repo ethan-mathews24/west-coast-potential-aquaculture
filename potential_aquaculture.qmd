@@ -1,0 +1,147 @@
+---
+title: "Prioritizing Potential Aquaculture Along the West Coast"
+date: 11-10-2026
+format: 
+  pdf:
+    toc: false
+    code-fold: false
+execute:
+  echo: true
+  warning: false
+  message: false
+  results: hide
+---
+
+
+```{r}
+# Set up
+
+# Load in libraries
+library(tidyverse)
+library(terra)       # raster handling
+library(sf)          # vector handling
+library(tmap)
+
+
+# Load in sea surface data
+sst_2008 <- rast("data/average_annual_sst_2008.tif")
+sst_2009 <- rast("data/average_annual_sst_2009.tif")
+sst_2010 <- rast("data/average_annual_sst_2010.tif")
+sst_2011 <- rast("data/average_annual_sst_2011.tif")
+sst_2012 <- rast("data/average_annual_sst_2012.tif")
+
+
+# Load in depth data
+depth <- rast("data/depth.tif")
+
+
+# Load in EEZ data
+eez <- st_read("data/wc_regions_clean.shp")
+```
+
+### Process Data
+
+```{r}
+# Combine yearly raster layers into one raster
+sst_stack <- c(sst_2008, sst_2009, sst_2010, sst_2011, sst_2012)
+```
+
+```{r}
+# Process data so layers can be combined 
+
+# find mean SST from 2008-2012
+sst_avg <- mean(sst_stack)
+
+# Convert average SST from kelvin to celsius
+avg_sst_C <- sst_avg - 273.15
+
+# Crop depth raster to match the extent of the SST raster 
+depth_crop <- crop(depth, avg_sst_C)
+
+# Resample the depth data to match resolution of SST
+depth_resample <- resample(depth_crop, avg_sst_C, method = "bilinear")
+
+```
+
+```{r}
+# Test to see if CRSs' match among datasets
+
+# Check if sst_stack and depth have the same CRS
+if (crs(avg_sst_C) == crs(depth_resample)){
+    print("The coordinate reference systems match!")
+} else {
+    warning("Update coordinate reference systems to match!")
+}
+
+# convert the depth_resample crs to be the crs of avg_sst_C
+crs(depth_resample) <- crs(avg_sst_C)
+
+# Quick check to verify it worked
+crs(depth_resample) == crs(avg_sst_C)
+
+```
+
+```{r}
+# Check if resolution, CRS, and extent match
+
+if (compareGeom(avg_sst_C, depth_resample, crs = TRUE, ext = TRUE,
+                rowcol = TRUE, res = TRUE)) {
+  print("Depth and SST match in CRS, extent, and resolution")
+}
+
+```
+
+
+### Find Suitable Locations
+
+
+```{r}
+# Reclassifying SST and depth into suitable locations for oysters
+
+# Reclassify SST by making matrix
+rcl_sst_oyster <- matrix(c(
+    -Inf, 11, 0,
+    11, 30, 1, 
+    30, Inf, 0
+), ncol = 3, byrow = TRUE)
+
+# Apply it to raster layer
+sst_zones <- as.factor(classify(avg_sst_C, rcl = rcl_sst_oyster))
+
+
+# Reclassify depth by making matrix
+rcl_depth_oyster <- matrix(c(
+    -Inf, -70, 0,
+    -70, 0, 1,
+    0, Inf, 0
+), ncol = 3, byrow = TRUE)
+
+# Apply it to raster layer
+depth_zones <- as.factor(classify(depth_resample, rcl = rcl_depth_oyster))
+```
+
+
+```{r}
+# Reclassifying SST and depth into suitable locations for red abalone
+
+# Reclassify SST by making matrix
+rcl_sst_abalone <- matrix(c(
+    -Inf, 8, 0,
+    8, 18, 1, 
+    18, Inf, 0
+), ncol = 3, byrow = TRUE)
+
+# Apply it to raster layer
+sst_zones <- as.factor(classify(avg_sst_C, rcl = rcl_sst_abalone))
+
+
+# Reclassify depth by making matrix
+rcl_depth_abalone <- matrix(c(
+    -Inf, 0, 0,
+    0, 24, 1,
+    0, Inf, 0
+), ncol = 3, byrow = TRUE)
+
+# Apply it to raster layer
+depth_zones <- as.factor(classify(depth_resample, rcl = rcl_depth_abalone))
+```
