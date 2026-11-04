@@ -55,8 +55,6 @@ The `data` folder contains the data used for this analysis.
 
 The `images` folder contains images that were used for the README an results sections.
 
-The `R` folder contains the suitable zones function that is used to produce the maps of a specified species.
-
 
 
 ### Results
@@ -103,6 +101,7 @@ Data file used for this analysis:
 Author: [Ethan Mathews](https://github.com/ethan-mathews24)
 
 Contributor: [Annie Adams](https://github.com/annieradams)
+
 
 
 ### Citations

@@ -14,11 +14,6 @@ execute:
   results: hide
 ---
 
-```{r}
-# Include pathway from function
-source("R/suitable_zones.R")
-```
-
 ### Load in Packages and Data 
 ```{r}
 #| message: false
@@ -33,7 +28,6 @@ library(terra) # raster handling
 library(sf) # vector handling
 library(tmap)
 
-
 # Load in sea surface data
 sst_2008 <- rast("data/average_annual_sst_2008.tif")
 sst_2009 <- rast("data/average_annual_sst_2009.tif")
@@ -41,30 +35,212 @@ sst_2010 <- rast("data/average_annual_sst_2010.tif")
 sst_2011 <- rast("data/average_annual_sst_2011.tif")
 sst_2012 <- rast("data/average_annual_sst_2012.tif")
 
-
 # Load in depth data
 depth <- rast("data/depth.tif")
 
-
 # Load in EEZ data
-EEZ <- st_read("data/wc_regions_clean.shp")
+eez <- st_read("data/wc_regions_clean.shp")
 ```
 
-### Process Data
+
+### Stack and Process Data
 
 ```{r}
 # Combine yearly raster layers into one raster
 sst_stack <- c(sst_2008, sst_2009, sst_2010, sst_2011, sst_2012)
+
+# Process data so layers can be combined
+
+# find mean SST from 2008-2012 and convert from K to C°
+avg_sst_C <- mean(sst_stack, na.rm = TRUE) - 273.15
+
+# Resample the depth data to match resolution of SST
+depth_resample <- resample(depth, avg_sst_C, method = "bilinear")
+```
+
+
+### Check layers have same resolution, extent, and CRS
+
+```{r}
+# Checking and converting depth to match SST resolution
+if (all(res(avg_sst_C) == res(depth_resample))) {
+  print("The resolutions match")
+} else {
+  warning("Update resolutions to match")
+  res(depth_resample) <- res(avg_sst_C)
+}
+
+# Checking and converting depth to match SST extent
+if (ext(avg_sst_C) == ext(depth_resample)) {
+  print("The extents match")
+} else {
+  warning("Update extents to match")
+  ext(depth_resample) <- ext(avg_sst_C)
+}
+
+# Checking and converting depth to match SST CRS
+if (crs(depth_resample) == crs(avg_sst_C)) {
+  print("The CRSs match")
+} else {
+  warning("Update CRSs to match")
+  crs(depth_resample) <- crs(avg_sst_C)
+}
+```
+
+```{r}
+# Function to make maps of suitable aquaculture area
+
+# Inputs:
+#   min_sst, max_sst     - suitable sea surface temperature range (°C)
+#   min_depth, max_depth - suitable depth range, as POSITIVE meters below
+#   species_name         - species name for organization and the map title
+#
+# This function requires data prepared from potential_aquaculture.qmd:
+#   avg_sst_C      - mean 2008-2012 SST in °C
+#   depth_resample - depth cropped and resampled to match avg_sst_C
+#   eez            - West Coast eez polygons, ensure the same CRS as rasters
+
+suitable_zones <- function(
+  min_sst,
+  max_sst,
+  min_depth,
+  max_depth,
+  species_name
+) {
+  # Reclassify SST by making matrix
+  rcl_sst <- matrix(
+    c(
+      -Inf,
+      min_sst,
+      0,
+      min_sst,
+      max_sst,
+      1,
+      max_sst,
+      Inf,
+      0
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  # Apply it to raster layer
+  sst_zones <- classify(avg_sst_C, rcl = rcl_sst)
+
+  # Reclassify depth by making matrix
+  rcl_depth <- matrix(
+    c(
+      -Inf,
+      -max_depth,
+      0,
+      -max_depth,
+      -min_depth,
+      1,
+      -min_depth,
+      Inf,
+      0
+    ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+  # Apply it to raster layer
+  depth_zones <- classify(depth_resample, rcl = rcl_depth)
+
+  # Find areas that satisfy both SST and depth
+  species_stack <- c(sst_zones, depth_zones)
+
+  species_suitable <- lapp(species_stack, fun = function(sst, depth) {
+    sst * depth
+  })
+
+  # Rastertize EEZ
+  eez_raster <- rasterize(vect(eez), species_suitable, field = "rgn_id")
+
+  # Calculating area of each cell
+  cell_area <- cellSize(species_suitable, unit = "km", mask = TRUE)
+
+  # Keep area of suitable cells only; unsuitable (0) become NA
+  suitable_area <- mask(cell_area, species_suitable, maskvalues = 0)
+
+  # Select raster cells that fall in EEZ regions
+  suitable_area_eez <- zonal(
+    suitable_area,
+    eez_raster,
+    fun = "sum",
+    na.rm = TRUE
+  )
+
+  # Convert into DataFrame
+  suitability_df <- as_tibble(suitable_area_eez) |>
+    rename(suitable_area_km2 = area) # rename column name
+
+  # Join suitable areas to EEZ polygons
+  eez_map <- left_join(eez, suitability_df, by = "rgn_id")
+
+  # Make a map of West Coast EEZ's
+  tm_shape(eez_map) +
+
+    # Add a basemap
+    tm_basemap("OpenStreetMap") +
+
+    # Customize legend
+    tm_fill(
+      fill_alpha = 0.75,
+      fill = "suitable_area_km2",
+      fill.legend = tm_legend(
+        "Suitable Area (km²)",
+        position = tm_pos_out("right", "center")
+      )
+    ) +
+
+    # Customize border of polygons
+    tm_borders(
+      lwd = 0.5
+    ) +
+
+    # Add a scalebar
+    tm_scalebar(
+      position = c("left", "bottom"),
+    ) +
+
+    # Add a compass
+    tm_compass(
+      position = c("right", "top"),
+    ) +
+
+    # Add a title
+    tm_title(
+      paste("Suitable Aquaculture Areas for", species_name, "by EEZ"),
+      fontface = "bold",
+      size = 1
+    ) +
+
+    # Remove warning
+    tm_options(component.autoscale = FALSE)
+}
 ```
 
 ### Maps
 
 ```{r}
 # Suitable zone map for oysters
-suitable_zones(11, 30, 0, -70, 'Oysters')
+suitable_zones(
+  min_sst = 11,
+  max_sst = 30,
+  min_depth = 0,
+  max_depth = 70,
+  species_name = "Oysters"
+)
 ```
 
 ```{r}
 # Suitable zone map for red abalone
-suitable_zones(8, 18, 0, -24, 'Red Abalone')
+suitable_zones(
+  min_sst = 8,
+  max_sst = 18,
+  min_depth = 0,
+  max_depth = 24,
+  species_name = "Abalone"
+)
 ```
