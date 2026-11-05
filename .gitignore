@@ -1,6 +1,10 @@
 # Data
 data/
 
+# Air Formatting
+.vscode/
+air.toml
+
 # History files
 .Rhistory
 .Rapp.history
