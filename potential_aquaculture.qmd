@@ -49,8 +49,6 @@ eez <- st_read("data/wc_regions_clean.shp")
 # Combine yearly raster layers into one raster
 sst_stack <- c(sst_2008, sst_2009, sst_2010, sst_2011, sst_2012)
 
-# Process data so layers can be combined
-
 # find mean SST from 2008-2012 and convert from K to C°
 avg_sst_C <- mean(sst_stack, na.rm = TRUE) - 273.15
 
@@ -202,11 +200,13 @@ suitable_zones <- function(
     # Add a scalebar
     tm_scalebar(
       position = c("left", "bottom"),
+      text.size = 0.25
     ) +
 
     # Add a compass
     tm_compass(
       position = c("right", "top"),
+      size = 1.5
     ) +
 
     # Add a title
@@ -234,6 +234,15 @@ suitable_zones(
 )
 ```
 
+### Reflection
+
+The Central California EEZ contains the largest area suitable for oyster aquaculture, followed by the Southern California and Washington EEZs. Oregon has a moderate amount of suitable area, and Northern California has the least. Suitable areas were defined by the optimal growth conditions for oysters which require an average sea surface temperature (SST) between 11°C and 30°C, and a depth of 0 to 70 meters below sea level.
+
+To identify these areas, annual average SST rasters from 2008 to 2012 were stacked and averaged into a single raster, then converted from Kelvin to Celsius. The bathymetry raster was cropped and resampled to match the SST grid so the two layers could be combined. Each layer was reclassified into suitable (1) and unsuitable (0) cells, and multiplying the layers identified cells that met both conditions. Exclusive Economic Zones were used to define maritime boundaries, allowing suitable area to be summed within each zone and compared along the West Coast. This workflow was then generalized into a function that can map suitable area for any species with known SST and depth ranges.
+
+This analysis has several limitations. Suitability was based only on SST and depth; other important factors such as dissolved oxygen, ship traffic, and marine protected areas. Averaging SST across five years also hides seasonal extremes that could stress oysters even in areas classified as suitable.
+
+
 ```{r}
 # Suitable zone map for red abalone
 suitable_zones(
@@ -244,3 +253,7 @@ suitable_zones(
   species_name = "Abalone"
 )
 ```
+
+### Reflection
+
+The Washington EEZ contains the largest area suitable for red abalone aquaculture, followed by the Central California EEZ. The Oregon, Northern California, and Southern California EEZs have the least suitable area. Suitable areas were defined by the optimal growth conditions for red abalone: an average sea surface temperature (SST) between 8°C and 18°C, and a depth of 0 to 24 meters below sea level (SeaLifeBase).

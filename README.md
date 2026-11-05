@@ -53,7 +53,7 @@ EDS223-HWK3
 
 The `data` folder contains the data used for this analysis.
 
-The `images` folder contains images that were used for the README an results sections.
+The `images` folder contains images that were used for the README and results sections.
 
 
 
@@ -80,7 +80,7 @@ Data files used from this analysis:
 
 #### Bathymetry
 
-To characterize the depth of the ocean we will use the [General Bathymetric Chart of the Oceans (GEBCO).3.](https://www.gebco.net/data-products/gridded-bathymetry-data#area)
+To characterize the depth of the ocean we used the [General Bathymetric Chart of the Oceans (GEBCO).3.](https://www.gebco.net/data-products/gridded-bathymetry-data#area)
 
 Data file used for this analysis:
 
@@ -88,7 +88,7 @@ Data file used for this analysis:
 
 #### Exclusive Economic Zones (EEZ)
 
-We will be designating maritime boundaries using Exclusive Economic Zones off of the west coast of US from [Marineregions.org.](https://www.marineregions.org/eez.php)
+We designated maritime boundaries by using Exclusive Economic Zones off of the west coast of US from [Marineregions.org.](https://www.marineregions.org/eez.php)
 
 Data file used for this analysis: 
 
@@ -96,7 +96,7 @@ Data file used for this analysis:
 
 
 
-### Authors and Contributors 
+#### Authors and Contributors 
 
 Author: [Ethan Mathews](https://github.com/ethan-mathews24)
 
@@ -104,7 +104,18 @@ Contributor: [Annie Adams](https://github.com/annieradams)
 
 
 
-### Citations
-
+#### Citations
 
 Gentry, R., Froehlich, H., Grimm, D., Kareiva, P., Parke, M., Rust, M., Gaines, S., & Halpern, B. (2017). Mapping the global potential for marine aquaculture. *Nature Ecology & Evolution*, 1, 1317-1324, https://www.nature.com/articles/s41559-017-0257-9. 
+
+
+#### Data Citations
+
+Flanders Marine Institute (2023). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 12. Accessed on November 02, 2026 at https://www.marineregions.org/eez.php.
+
+GEBCO Bathymetric Compilation Group 2026 (2026). The GEBCO_2026 Grid - a continuous terrain model for oceans and land at 15 arc-second intervals. Accessed on November 02, 2026 at https://www.gebco.net/data-products/gridded-bathymetry-data#area.
+
+NOAA Coral Reef Watch (2026). NOAA Coral Reef Watch Version 3.1 Daily Global 5km Satellite Sea Surface Temperature Anomaly Product, 2008–2012. College Park, Maryland, USA: NOAA Coral Reef Watch. Accessed on November 02, 2026 at https://coralreefwatch.noaa.gov/product/5km/index_5km_ssta.php.
+
+
+
