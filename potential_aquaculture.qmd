@@ -11,7 +11,6 @@ execute:
   echo: true
   warning: false
   message: false
-  results: hide
 ---
 
 ### Load in Packages and Data 
@@ -47,7 +46,7 @@ eez <- st_read("data/wc_regions_clean.shp")
 # Combine yearly raster layers into one raster
 sst_stack <- c(sst_2008, sst_2009, sst_2010, sst_2011, sst_2012)
 
-# find mean SST from 2008-2012 and convert from K to C°
+# Calculate mean SST from 2008-2012 and convert from K to °C
 avg_sst_C <- mean(sst_stack, na.rm = TRUE) - 273.15
 
 # Resample the depth data to match resolution of SST
@@ -94,7 +93,7 @@ if (crs(depth_resample) == crs(avg_sst_C)) {
 # This function requires data prepared from potential_aquaculture.qmd:
 #   avg_sst_C      - mean 2008-2012 SST in °C
 #   depth_resample - depth cropped and resampled to match avg_sst_C
-#   eez            - West Coast eez polygons, ensure the same CRS as rasters
+#   eez            - West Coast EEZ polygons, ensure the same CRS as rasters
 
 suitable_zones <- function(
   min_sst,
@@ -150,7 +149,7 @@ suitable_zones <- function(
     sst * depth
   })
 
-  # Rastertize EEZ
+  # Rasterize EEZ
   eez_raster <- rasterize(vect(eez), species_suitable, field = "rgn_id")
 
   # Calculating area of each cell
@@ -169,7 +168,7 @@ suitable_zones <- function(
 
   # Convert into DataFrame
   suitability_df <- as_tibble(suitable_area_eez) |>
-    rename(suitable_area_km2 = area) # rename column name
+    rename(suitable_area_km2 = area) # rename column
 
   # Join suitable areas to EEZ polygons
   eez_map <- left_join(eez, suitability_df, by = "rgn_id")
@@ -251,4 +250,4 @@ The Washington EEZ contains the largest area suitable for red abalone aquacultur
 
 To identify these areas, annual average SST rasters from 2008 to 2012 were stacked and averaged into a single raster, then converted from Kelvin to Celsius. The bathymetry raster was cropped and resampled to match the SST grid so the two layers could be combined. Each layer was reclassified into suitable (1) and unsuitable (0) cells, and multiplying the layers identified cells that met both conditions. Exclusive Economic Zones were used to define maritime boundaries, allowing suitable area to be summed within each zone and compared along the West Coast. This workflow was then generalized into a function that can map suitable area for any species with known SST and depth ranges.
 
-This analysis has several limitations. Suitability was based only on SST and depth and other important factors such as dissolved oxygen, ship traffic, and marine protected areas were not considered. Averaging SST across five years also hides seasonal extremes that could stress oysters even in areas classified as suitable.
+This analysis has several limitations. Suitability was based only on SST and depth and other important factors such as dissolved oxygen, ship traffic, and marine protected areas were not considered. Averaging SST across five years also hides seasonal extremes that could stress either species even in areas classified as suitable.
