@@ -59,7 +59,7 @@ The `images` folder contains images that were used for the README and results se
 
 ### Results
 
-IMAGES GO HERE
+![](images/plot.png)
 
 
 
@@ -96,7 +96,7 @@ Data file used for this analysis:
 
 
 
-#### Authors and Contributors 
+### Authors and Contributors 
 
 Author: [Ethan Mathews](https://github.com/ethan-mathews24)
 
@@ -104,12 +104,12 @@ Contributor: [Annie Adams](https://github.com/annieradams)
 
 
 
-#### Citations
+### Citations
 
 Gentry, R., Froehlich, H., Grimm, D., Kareiva, P., Parke, M., Rust, M., Gaines, S., & Halpern, B. (2017). Mapping the global potential for marine aquaculture. *Nature Ecology & Evolution*, 1, 1317-1324, https://www.nature.com/articles/s41559-017-0257-9. 
 
 
-#### Data Citations
+### Data Citations
 
 Flanders Marine Institute (2023). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 12. Accessed on November 02, 2026 at https://www.marineregions.org/eez.php.
 

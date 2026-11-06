@@ -68,7 +68,6 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><p><code>tidyverse</code></p></li>
 <li><p><code>fs</code></p></li>
-<li><p><code>here</code></p></li>
 <li><p><code>tmap</code></p></li>
 <li><p><code>terra</code></p></li>
 <li><p><code>sf</code></p></li>
@@ -93,17 +92,18 @@ ul.task-list li input[type="checkbox"] {
 <section id="repository-contents" class="level3">
 <h3 class="anchored" data-anchor-id="repository-contents">Repository Contents</h3>
 <p>The <code>data</code> folder contains the data used for this analysis.</p>
-<p>The <code>images</code> folder contains images that were used for the README an results sections.</p>
+<p>The <code>images</code> folder contains images that were used for the README and results sections.</p>
 </section>
 <section id="results" class="level3">
 <h3 class="anchored" data-anchor-id="results">Results</h3>
+<p><img src="images/plot.png" class="img-fluid"></p>
 </section>
 <section id="data-informationaccess" class="level3">
 <h3 class="anchored" data-anchor-id="data-informationaccess">Data Information/Access</h3>
 <section id="sea-surface-temperature" class="level4">
 <h4 class="anchored" data-anchor-id="sea-surface-temperature">Sea Surface Temperature</h4>
 <p>For this analysis, we used average annual sea surface temperature (SST) from the years 2008 to 2012 to characterize the average sea surface temperature within the region. The data we worked with was originally generated from <a href="https://coralreefwatch.noaa.gov/product/5km/index_5km_ssta.php">NOAA’s 5km Daily Global Satellite Sea Surface Temperature Anomaly v3.1.</a></p>
-<p>Data files used from this repository:</p>
+<p>Data files used from this analysis:</p>
 <ul>
 <li><code>average_annual_sst_2008.tif</code></li>
 <li><code>average_annual_sst_2009.tif</code></li>
@@ -114,10 +114,19 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="bathymetry" class="level4">
 <h4 class="anchored" data-anchor-id="bathymetry">Bathymetry</h4>
-<p>To characterize the depth of the ocean we will use the General Bathymetric Chart of the Oceans (GEBCO).3</p>
-<p>Data file: depth.tif</p>
-<p>Exclusive Economic Zones We will be designating maritime boundaries using Exclusive Economic Zones off of the west coast of US from Marineregions.org.</p>
-<p>Data file: wc_regions_clean.shp</p>
+<p>To characterize the depth of the ocean we used the <a href="https://www.gebco.net/data-products/gridded-bathymetry-data#area">General Bathymetric Chart of the Oceans (GEBCO).3.</a></p>
+<p>Data file used for this analysis:</p>
+<ul>
+<li><code>depth.tif</code></li>
+</ul>
+</section>
+<section id="exclusive-economic-zones-eez" class="level4">
+<h4 class="anchored" data-anchor-id="exclusive-economic-zones-eez">Exclusive Economic Zones (EEZ)</h4>
+<p>We designated maritime boundaries by using Exclusive Economic Zones off of the west coast of US from <a href="https://www.marineregions.org/eez.php">Marineregions.org.</a></p>
+<p>Data file used for this analysis:</p>
+<ul>
+<li><code>wc_regions_clean.shp</code></li>
+</ul>
 </section>
 </section>
 <section id="authors-and-contributors" class="level3">
@@ -128,6 +137,12 @@ ul.task-list li input[type="checkbox"] {
 <section id="citations" class="level3">
 <h3 class="anchored" data-anchor-id="citations">Citations</h3>
 <p>Gentry, R., Froehlich, H., Grimm, D., Kareiva, P., Parke, M., Rust, M., Gaines, S., &amp; Halpern, B. (2017). Mapping the global potential for marine aquaculture. <em>Nature Ecology &amp; Evolution</em>, 1, 1317-1324, https://www.nature.com/articles/s41559-017-0257-9.</p>
+</section>
+<section id="data-citations" class="level3">
+<h3 class="anchored" data-anchor-id="data-citations">Data Citations</h3>
+<p>Flanders Marine Institute (2023). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 12. Accessed on November 02, 2026 at https://www.marineregions.org/eez.php.</p>
+<p>GEBCO Bathymetric Compilation Group 2026 (2026). The GEBCO_2026 Grid - a continuous terrain model for oceans and land at 15 arc-second intervals. Accessed on November 02, 2026 at https://www.gebco.net/data-products/gridded-bathymetry-data#area.</p>
+<p>NOAA Coral Reef Watch (2026). NOAA Coral Reef Watch Version 3.1 Daily Global 5km Satellite Sea Surface Temperature Anomaly Product, 2008–2012. College Park, Maryland, USA: NOAA Coral Reef Watch. Accessed on November 02, 2026 at https://coralreefwatch.noaa.gov/product/5km/index_5km_ssta.php.</p>
 </section>
 </section>
 
